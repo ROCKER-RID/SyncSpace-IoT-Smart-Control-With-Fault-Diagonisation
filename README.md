@@ -56,10 +56,10 @@ https://github.com/user-attachments/assets/be016d2d-ab07-4e29-a8ec-5308e1d7c816
 ---
 
 ## 👥 Project Authors (Team SyncSpace)
-* **Ridhin George** (SHR23CS161)
-* **Sharon Maliakal** (SHR23CS168)
-* **R A Swaroop** (SHR23CS159)
-* **Aaron A S** (LSHR23CS190)
+* **Ridhin George** 
+* **Sharon Maliakal** 
+* **R A Swaroop**
+* **Aaron A S**
 
 **Institution:** Department of Computer Science and Engineering, Sahrdaya College of Engineering and Technology, Kodakara.  
 **Project Guide & Coordinator:** Ms. Rehna Baby Joseph (Assistant Professor).
