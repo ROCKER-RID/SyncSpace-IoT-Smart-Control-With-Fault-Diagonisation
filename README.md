@@ -199,6 +199,7 @@ src="https://github.com/user-attachments/assets/9d41882b-1dcf-4618-8b00-d4587f5e
 https://github.com/user-attachments/assets/be016d2d-ab07-4e29-a8ec-5308e1d7c816
 
 ### Circuit Schematic
+### This is designed for 7 utility setup
 
 [SYNCSPACE_AUTOMATION_HARDWARE.pdf](https://github.com/user-attachments/files/28308854/SYNCSPACE_AUTOMATION_HARDWARE.pdf)
 
