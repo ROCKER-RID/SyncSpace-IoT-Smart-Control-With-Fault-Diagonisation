@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYNCSPACE Control System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --success-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --border-radius: 12px;
+            --card-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 10px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-icon {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+        }
+
+        h3 {
+            margin: 0;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .connected {
+            background-color: var(--success-color);
+            box-shadow: 0 0 10px var(--success-color);
+        }
+
+        .disconnected {
+            background-color: var(--danger-color);
+            box-shadow: 0 0 10px var(--danger-color);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .control-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 10px;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .control-item:hover::before {
+            left: 100%;
+        }
+
+        .control-item:hover {
+            border-color: var(--accent-color);
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+
+        .control-item.active {
+            border-color: var(--success-color);
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .control-icon {
+            font-size: 1.2rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            transition: var(--transition);
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.on {
+            background: linear-gradient(135deg, var(--success-color), #66bb6a);
+        }
+
+        button.off {
+            background: linear-gradient(135deg, var(--danger-color), #ef5350);
+        }
+
+        .slider-container {
+            margin-top: 15px;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(90deg, #ddd, var(--accent-color));
+            border-radius: 4px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .slider:hover {
+            height: 10px;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: var(--transition);
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: var(--primary-color);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            border: none;
+        }
+
+        .system-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-family: 'Consolas', monospace;
+        }
+
+        .master-controls {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .master-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .master-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .schedule-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .schedule-time {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .master-controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card header-card">
+            <div class="logo-container">
+                <div class="logo-left">
+                    <i class="fas fa-home logo-icon"></i>
+                    <h1>SYNCSPACE</h1>
+                </div>
+                <p class="connection-status">
+                    <span id="connectionStatus" class="status-indicator disconnected"></span>
+                    <span id="connectionText">Disconnected</span>
+                </p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="activeDevices">0</div>
+                    <div class="stat-label">Active Devices</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="powerUsage">0W</div>
+                    <div class="stat-label">Est. Power Usage</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="uptime">0h</div>
+                    <div class="stat-label">Uptime</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="header-left">
+                    <i class="fas fa-toggle-on header-icon"></i>
+                    <h3>Switch Controls</h3>
+                </div>
+            </div>
+            <div class="master-controls">
+                <button class="master-btn" onclick="toggleAllSwitches(true)" style="background: linear-gradient(135deg, var(--success-color), #66bb6a);">
+                    <i class="fas fa-power-off"></i> ALL ON
+                </button>
+                <button class="master-btn" onclick="toggleAllSwitches(false)" style="background: linear-gradient(135deg, var(--danger-color), #ef5350);">
+                    <i class="fas fa-power-off"></i> ALL OFF
+                </button>
+            </div>
+            <div class="controls" id="relayControls"></div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="header-left">
+                    <i class="fas fa-fan header-icon"></i>
+                    <h3>Fan Controls</h3>
+                </div>
+            </div>
+            <div class="controls" id="fanControls"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="header-left">
+                    <i class="fas fa-clock header-icon"></i>
+                    <h3>Schedule</h3>
+                </div>
+            </div>
+            <div id="scheduleList"></div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <div class="header-left">
+                    <i class="fas fa-microchip header-icon"></i>
+                    <h3>System Information</h3>
+                </div>
+            </div>
+            <div id="zcdInfo" class="system-info"></div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        const switchNames = [
+            { name: 'Living Room', icon: 'fa-couch', power: 60 },
+            { name: 'Bedroom', icon: 'fa-bed', power: 40 },
+            { name: 'Kitchen', icon: 'fa-utensils', power: 100 },
+            { name: 'Bathroom', icon: 'fa-bath', power: 30 },
+            { name: 'Garage', icon: 'fa-warehouse', power: 75 }
+        ];
+
+        const fanNames = [
+            { name: 'Ceiling Fan', icon: 'fa-fan', power: 75 },
+            { name: 'Table Fan', icon: 'fa-wind', power: 45 },
+            { name: 'Exhaust Fan', icon: 'fa-fan', power: 50 }
+        ];
+
+        const schedules = [
+            { time: '07:00 AM', device: 'Living Room', action: 'ON' },
+            { time: '09:30 PM', device: 'Bedroom', action: 'ON' },
+            { time: '11:00 PM', device: 'All Lights', action: 'OFF' }
+        ];
+
+        let uptime = 0;
+        let relayStates = [false, false, false, false, false];
+        let fanSpeeds = [0, 0, 0];
+
+        socket.on('connect', () => { updateConnectionStatus(true); });
+        socket.on('disconnect', () => { updateConnectionStatus(false); });
+        //socket.on('connection_status', (data) => { updateConnectionStatus(data.connected); });
+
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            const textEl   = document.getElementById('connectionText');
+            if (connected) {
+                statusEl.className = 'status-indicator connected';
+                textEl.textContent = 'Connected';
+            } else {
+                statusEl.className = 'status-indicator disconnected';
+                textEl.textContent = 'Disconnected';
+            }
+        }
+
+       socket.on("mqtt_update", (data) => {
+    const { topic, msg } = data;
+
+    // ---------- RELAY STATE ----------
+    if (topic.includes("relay") && topic.includes("state")) {
+        const relay = parseInt(topic.split("/")[2]);
+
+        updateRelayUI([{
+            relay: relay,
+            state: msg === "ON"
+        }]);
+    }
+
+    // ---------- FAN STATE ----------
+    if (topic.includes("fan") && topic.includes("state")) {
+        const fan = parseInt(topic.split("/")[2]);
+
+        updateFanUI([{
+            fan: fan,
+            speed: parseInt(msg)
+        }]);
+    }
+
+    // ---------- ESP STATUS ----------
+    if (topic === "syncspace/esp32/status") {
+        updateConnectionStatus(msg === "ONLINE");
+    }
+});
+
+        function initializeUI() {
+            const relayControls = document.getElementById('relayControls');
+            const fanControls   = document.getElementById('fanControls');
+
+            for (let i = 0; i < 5; i++) {
+                const config   = switchNames[i];
+                const relayDiv = document.createElement('div');
+                relayDiv.className = 'control-item';
+                relayDiv.id = `relay-item-${i}`;
+                relayDiv.innerHTML = `
+                    <div class="control-label">
+                        <i class="fas ${config.icon} control-icon"></i>
+                        <span>Switch ${i + 1}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+                        ${config.name}
+                    </div>
+                    <button id="relay-${i}" class="off" onclick="toggleRelay(${i})">
+                        <i class="fas fa-power-off"></i>
+                        <span>OFF</span>
+                    </button>
+                `;
+                relayControls.appendChild(relayDiv);
+            }
+
+            for (let i = 0; i < 3; i++) {
+                const config = fanNames[i];
+                const fanDiv = document.createElement('div');
+                fanDiv.className = 'control-item';
+                fanDiv.id = `fan-item-${i}`;
+                fanDiv.innerHTML = `
+                    <div class="control-label">
+                        <i class="fas ${config.icon} control-icon"></i>
+                        <span>Fan ${i + 1}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">
+                        ${config.name}
+                    </div>
+                    <button id="fan-btn-${i}" class="off" onclick="toggleFan(${i})">
+                        <i class="fas fa-power-off"></i>
+                        <span>OFF</span>
+                    </button>
+                    <div class="slider-container">
+                        <div class="slider-header">
+                            <span>Speed</span>
+                            <span class="slider-value" id="fan-${i}-value">0%</span>
+                        </div>
+                        <input type="range" id="fan-${i}" class="slider"
+                               min="0" max="100" value="0"
+                               oninput="updateFanSpeed(${i}, this.value)">
+                    </div>
+                `;
+                fanControls.appendChild(fanDiv);
+            }
+
+            initSchedule();
+            initSystemInfo();
+        }
+
+        function initSchedule() {
+            const container = document.getElementById('scheduleList');
+            container.innerHTML = schedules.map(sch => `
+                <div class="schedule-item">
+                    <div>
+                        <div class="schedule-time"><i class="fas fa-clock"></i> ${sch.time}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">${sch.device}</div>
+                    </div>
+                    <span class="badge ${sch.action === 'ON' ? 'badge-success' : 'badge-danger'}">
+                        ${sch.action}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function initSystemInfo() {
+            const container = document.getElementById('zcdInfo');
+            container.innerHTML = `
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-microchip"></i> ZCD Interval:</span>
+                    <span class="info-value" id="zcd-value">-- µs</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-memory"></i> Free Memory:</span>
+                    <span class="info-value">45.2 KB</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-wifi"></i> Signal Strength:</span>
+                    <span class="info-value">-45 dBm</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label"><i class="fas fa-thermometer-half"></i> Temperature:</span>
+                    <span class="info-value">42°C</span>
+                </div>
+            `;
+        }
+
+        function updateRelayUI(relays) {
+            relays.forEach(relay => {
+                const button = document.getElementById(`relay-${relay.relay}`);
+                const item   = document.getElementById(`relay-item-${relay.relay}`);
+                if (button && item) {
+                    relayStates[relay.relay] = relay.state;
+                    if (relay.state) {
+                        button.className = 'on';
+                        button.innerHTML = '<i class="fas fa-power-off"></i><span>ON</span>';
+                        item.classList.add('active');
+                    } else {
+                        button.className = 'off';
+                        button.innerHTML = '<i class="fas fa-power-off"></i><span>OFF</span>';
+                        item.classList.remove('active');
+                    }
+                }
+            });
+            updateStats();
+        }
+
+        function updateFanUI(fans) {
+            fans.forEach(fan => {
+                const slider       = document.getElementById(`fan-${fan.fan}`);
+                const valueDisplay = document.getElementById(`fan-${fan.fan}-value`);
+                const button       = document.getElementById(`fan-btn-${fan.fan}`);
+                const item         = document.getElementById(`fan-item-${fan.fan}`);
+                if (slider && valueDisplay) {
+                    fanSpeeds[fan.fan] = fan.speed;
+                    slider.value = fan.speed;
+                    valueDisplay.textContent = `${fan.speed}%`;
+                    if (button && item) {
+                        if (fan.speed > 0) {
+                            button.className = 'on';
+                            button.innerHTML = '<i class="fas fa-power-off"></i><span>ON</span>';
+                            item.classList.add('active');
+                        } else {
+                            button.className = 'off';
+                            button.innerHTML = '<i class="fas fa-power-off"></i><span>OFF</span>';
+                            item.classList.remove('active');
+                        }
+                    }
+                }
+            });
+            updateStats();
+        }
+
+        function updateZCDInfo(zcdInterval) {
+            const zcdValue = document.getElementById('zcd-value');
+            if (zcdValue) zcdValue.textContent = `${zcdInterval} µs`;
+        }
+
+        // ── Single relay toggle ───────────────────────────────
+        function toggleRelay(relay) {
+            const button   = document.getElementById(`relay-${relay}`);
+            const newState = !relayStates[relay];
+
+            socket.emit('relay_control', {
+    relay: relay,
+    state: newState ? "ON" : "OFF"
+});
+
+            relayStates[relay] = newState;
+            const item = document.getElementById(`relay-item-${relay}`);
+            if (newState) {
+                button.className = 'on';
+                button.innerHTML = '<i class="fas fa-power-off"></i><span>ON</span>';
+                item.classList.add('active');
+            } else {
+                button.className = 'off';
+                button.innerHTML = '<i class="fas fa-power-off"></i><span>OFF</span>';
+                item.classList.remove('active');
+            }
+            updateStats();
+        }
+
+        // ── ALL ON / ALL OFF — single bulk command ────────────
+        function toggleAllSwitches(state) {
+            // Update UI immediately for all 5 relays
+            for (let i = 0; i < 5; i++) {
+                relayStates[i] = state;
+                const button = document.getElementById(`relay-${i}`);
+                const item   = document.getElementById(`relay-item-${i}`);
+                if (state) {
+                    button.className = 'on';
+                    button.innerHTML = '<i class="fas fa-power-off"></i><span>ON</span>';
+                    item.classList.add('active');
+                } else {
+                    button.className = 'off';
+                    button.innerHTML = '<i class="fas fa-power-off"></i><span>OFF</span>';
+                    item.classList.remove('active');
+                }
+            }
+            updateStats();
+
+            // Send ONE single command — no loop, no overwriting
+            for (let i = 0; i < 5; i++) {
+    socket.emit('relay_control', {
+        relay: i,
+        state: state ? "ON" : "OFF"
+    });
+}
+        }
+
+        // ── Fan toggle ────────────────────────────────────────
+        function toggleFan(fan) {
+            const currentSpeed = fanSpeeds[fan];
+            const newSpeed     = currentSpeed > 0 ? 0 : 50;
+
+           socket.emit('fan_control', {
+    fan: fan,
+    speed: newSpeed
+});
+
+            const slider       = document.getElementById(`fan-${fan}`);
+            const valueDisplay = document.getElementById(`fan-${fan}-value`);
+            const button       = document.getElementById(`fan-btn-${fan}`);
+            const item         = document.getElementById(`fan-item-${fan}`);
+
+            fanSpeeds[fan]           = newSpeed;
+            slider.value             = newSpeed;
+            valueDisplay.textContent = `${newSpeed}%`;
+
+            if (newSpeed > 0) {
+                button.className = 'on';
+                button.innerHTML = '<i class="fas fa-power-off"></i><span>ON</span>';
+                item.classList.add('active');
+            } else {
+                button.className = 'off';
+                button.innerHTML = '<i class="fas fa-power-off"></i><span>OFF</span>';
+                item.classList.remove('active');
+            }
+            updateStats();
+        }
+
+        // ── Fan speed slider ──────────────────────────────────
+        function updateFanSpeed(fan, speed) {
+            const valueDisplay = document.getElementById(`fan-${fan}-value`);
+            const button       = document.getElementById(`fan-btn-${fan}`);
+            const item         = document.getElementById(`fan-item-${fan}`);
+
+            valueDisplay.textContent = `${speed}%`;
+            fanSpeeds[fan] = parseInt(speed);
+
+            if (speed > 0) {
+                button.className = 'on';
+                button.innerHTML = '<i class="fas fa-power-off"></i><span>ON</span>';
+                item.classList.add('active');
+            } else {
+                button.className = 'off';
+                button.innerHTML = '<i class="fas fa-power-off"></i><span>OFF</span>';
+                item.classList.remove('active');
+            }
+
+            clearTimeout(window.fanDebounce);
+            window.fanDebounce = setTimeout(() => {
+socket.emit('fan_control', {
+    fan: fan,
+    speed: parseInt(speed)
+});
+            }, 100);
+
+            updateStats();
+        }
+
+        function updateStats() {
+            let activeCount = 0;
+            let totalPower  = 0;
+
+            relayStates.forEach((state, i) => {
+                if (state) {
+                    activeCount++;
+                    totalPower += switchNames[i].power;
+                }
+            });
+
+            fanSpeeds.forEach((speed, i) => {
+                if (speed > 0) {
+                    activeCount++;
+                    totalPower += (fanNames[i].power * speed / 100);
+                }
+            });
+
+            document.getElementById('activeDevices').textContent = activeCount;
+            document.getElementById('powerUsage').textContent    = Math.round(totalPower) + 'W';
+        }
+
+        function updateUptime() {
+            uptime++;
+            const hours = Math.floor(uptime / 3600);
+            document.getElementById('uptime').textContent = hours + 'h';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeUI();
+            updateStats();
+            setInterval(updateUptime, 1000);
+        });
+    </script>
+</body>
+</html>

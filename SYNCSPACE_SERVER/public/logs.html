@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YIP Fault Log — Sahrdaya</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg:      #0a0c10;
+    --panel:   #0e1117;
+    --border:  #1e2535;
+    --accent:  #00d4ff;
+    --green:   #00ff88;
+    --yellow:  #ffd24d;
+    --red:     #ff4466;
+    --purple:  #c084fc;
+    --text:    #c8d6e8;
+    --dim:     #4a5568;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    min-height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .logo span { color: var(--dim); font-weight: 400; }
+
+  .status-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .esp-badge {
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--dim);
+    transition: background 0.4s;
+  }
+  .dot.on  { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot.off { background: var(--red);   box-shadow: 0 0 8px var(--red);   animation: blink 1s infinite; }
+
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  .btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Filter bar ──────────────────────────────────────── */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 24px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    color: var(--dim);
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-right: 4px;
+  }
+
+  .chip {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: all 0.18s;
+  }
+  .chip.active, .chip:hover { border-color: currentColor; }
+  .chip[data-val="ALL"]   { color: var(--text); }
+  .chip[data-val="INFO"]  { color: var(--accent); }
+  .chip[data-val="WARN"]  { color: var(--yellow); }
+  .chip[data-val="ERROR"] { color: var(--red); }
+  .chip[data-val="FAULT"] { color: var(--purple); }
+  .chip[data-val="ESP32"]  { color: var(--green); }
+  .chip[data-val="CLIENT"] { color: var(--accent); }
+  .chip[data-val="SERVER"] { color: var(--yellow); }
+
+  .sep { color: var(--border); margin: 0 4px; }
+
+  .count-badge {
+    margin-left: auto;
+    font-size: 14px;
+    color: var(--dim);
+  }
+  #live-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; color: var(--green);
+  }
+  #live-badge .dot { width: 7px; height: 7px; }
+
+  /* ── Log table ───────────────────────────────────────── */
+  #log-container {
+    padding: 12px 24px;
+    max-height: calc(100vh - 130px);
+    overflow-y: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    text-align: left;
+    color: var(--dim);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+    background: var(--bg);
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #111827;
+    transition: background 0.15s;
+  }
+  tbody tr:hover { background: #111827; }
+
+  td {
+    padding: 9px 12px;
+    vertical-align: top;
+    white-space: nowrap;
+  }
+
+  .td-id      { color: var(--dim); width: 48px; font-size: 15px; }
+  .td-ts      { color: #ff4466; width: 220px; font-size: 15px; font-weight: bold; }
+  .td-level   { width: 80px; }
+  .td-src     { width: 82px; }
+  .td-event   { color: var(--text); min-width: 220px; font-size: 15px; }
+  .td-current { color: var(--yellow); width: 90px; font-size: 15px; }
+  .td-detail  {
+    color: var(--dim);
+    font-size: 14px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-width: 420px;
+  }
+
+  .level-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    font-weight: bold;
+  }
+  .lvl-INFO  { background: #003344; color: var(--accent); }
+  .lvl-WARN  { background: #332800; color: var(--yellow); }
+  .lvl-ERROR { background: #330015; color: var(--red); }
+  .lvl-FAULT { background: #1e003a; color: var(--purple); }
+
+  .src-pill {
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .src-ESP32  { color: var(--green); }
+  .src-CLIENT { color: var(--accent); }
+  .src-SERVER { color: var(--yellow); }
+
+  /* new-entry flash */
+  @keyframes flash { from { background: #001a2e; } to { background: transparent; } }
+  .new-row { animation: flash 1.2s ease-out; }
+
+  /* ── Empty state ─────────────────────────────────────── */
+  #empty {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--dim);
+    display: none;
+  }
+  #empty p { font-size: 15px; margin-top: 8px; }
+
+  /* ── Scrollbar ───────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">YIP <span>/ FAULT LOG</span></div>
+  <div class="status-row">
+    <div id="live-badge"><div class="dot on" id="live-dot"></div> LIVE</div>
+    <div class="esp-badge">
+      <div class="dot" id="esp-dot"></div>
+      <span id="esp-label">ESP32 ---</span>
+    </div>
+    <button class="btn danger" onclick="clearLogs()">CLEAR LOG</button>
+    <button class="btn" onclick="exportCSV()">EXPORT CSV</button>
+  </div>
+</header>
+
+<div class="filter-bar">
+  <span class="filter-label">LEVEL</span>
+  <button class="chip active" data-type="level" data-val="ALL"   onclick="setFilter('level','ALL')">ALL</button>
+  <button class="chip"        data-type="level" data-val="INFO"  onclick="setFilter('level','INFO')">INFO</button>
+  <button class="chip"        data-type="level" data-val="WARN"  onclick="setFilter('level','WARN')">WARN</button>
+  <button class="chip"        data-type="level" data-val="ERROR" onclick="setFilter('level','ERROR')">ERROR</button>
+  <button class="chip"        data-type="level" data-val="FAULT" onclick="setFilter('level','FAULT')">FAULT</button>
+
+  <span class="sep">|</span>
+  <span class="filter-label">SOURCE</span>
+  <button class="chip active" data-type="source" data-val="ALL"    onclick="setFilter('source','ALL')">ALL</button>
+  <button class="chip"        data-type="source" data-val="ESP32"  onclick="setFilter('source','ESP32')">ESP32</button>
+  <button class="chip"        data-type="source" data-val="CLIENT" onclick="setFilter('source','CLIENT')">CLIENT</button>
+  <button class="chip"        data-type="source" data-val="SERVER" onclick="setFilter('source','SERVER')">SERVER</button>
+
+  <span class="count-badge" id="count-badge">0 entries</span>
+</div>
+
+<div id="log-container">
+  <div id="empty"><p>No log entries yet.<br>Waiting for events…</p></div>
+  <table>
+    <thead>
+      <tr>
+        <th class="td-id">#</th>
+        <th class="td-ts">TIMESTAMP</th>
+        <th class="td-level">LEVEL</th>
+        <th class="td-src">SOURCE</th>
+        <th class="td-event">EVENT</th>
+        <th class="td-current">CURRENT</th>
+        <th>DETAIL</th>
+      </tr>
+    </thead>
+    <tbody id="log-body"></tbody>
+  </table>
+</div>
+
+<script>
+  const socket = io();
+  socket.on("log_history", (data) => {
+  allLogs = data;
+  render();
+});
+  let allLogs = [];
+  let filters = { level: 'ALL', source: 'ALL' };
+  let autoScroll = true;
+
+  // ── Socket events ────────────────────────────────────
+  socket.on('connect',    () => { document.getElementById('live-dot').classList.add('on'); });
+  socket.on('disconnect', () => { document.getElementById('live-dot').classList.remove('on'); });
+
+  socket.on('connection_status', ({ connected }) => {
+    const dot   = document.getElementById('esp-dot');
+    const label = document.getElementById('esp-label');
+    dot.className = 'dot ' + (connected ? 'on' : 'off');
+    label.textContent = 'ESP32 ' + (connected ? 'ONLINE' : 'OFFLINE');
+  });
+
+socket.on("mqtt_update", (data) => {
+  const { topic, msg } = data;
+
+  // ---------- ESP STATUS ----------
+  if (topic === "syncspace/logs") {
+  try {
+    const entry = JSON.parse(msg);
+
+    // 🔥 ADD THESE LINES HERE
+    entry.id = entry.id ?? (allLogs.length + 1);
+    entry.timestamp = entry.timestamp === "NOW"
+        ? new Date().toLocaleString()
+        : (entry.timestamp || new Date().toLocaleString());
+    entry.level = entry.level || "INFO";
+    entry.source = entry.source || "ESP32";
+    entry.event = entry.event || "Unknown";
+
+    allLogs.unshift(entry);
+
+    if (allLogs.length > 1000) allLogs.pop();
+
+    render(entry.id);
+
+  } catch (e) {
+    console.error("Invalid log JSON:", msg);
+  }
+}
+
+  // ---------- LOGS ----------
+  if (topic === "syncspace/logs") {
+    try {
+      const entry = JSON.parse(msg);
+
+      // Add to log list
+      allLogs.unshift(entry);
+
+      if (allLogs.length > 1000) allLogs.pop();
+
+      render(entry.id);
+
+    } catch (e) {
+      console.error("Invalid log format", msg);
+    }
+  }
+});
+
+  // ── Render ───────────────────────────────────────────
+  function render(flashId = null) {
+    let rows = allLogs.filter(l => {
+      if (filters.level  !== 'ALL' && l.level  !== filters.level)  return false;
+      if (filters.source !== 'ALL' && l.source !== filters.source) return false;
+      return true;
+    });
+
+    document.getElementById('count-badge').textContent = rows.length + ' entr' + (rows.length === 1 ? 'y' : 'ies');
+    document.getElementById('empty').style.display = rows.length ? 'none' : 'block';
+
+    const tbody = document.getElementById('log-body');
+    tbody.innerHTML = rows.map(l => `
+      <tr class="${l.id === flashId ? 'new-row' : ''}">
+        <td class="td-id">${l.id}</td>
+        <td class="td-ts">${l.timestamp}</td>
+        <td class="td-level"><span class="level-pill lvl-${l.level}">${l.level}</span></td>
+        <td class="td-src"><span class="src-pill src-${l.source}">${l.source}</span></td>
+        <td class="td-event">${escHtml(l.event)}</td>
+        <td class="td-current">${l.current !== undefined ? escHtml(String(l.current)) : '<span style="color:#4a5568">N/A</span>'}</td>
+        <td class="td-detail">${formatDetail(l.detail)}</td>
+      </tr>`).join('');
+  }
+
+  function formatDetail(d) {
+    if (!d || Object.keys(d).length === 0) return '';
+    return Object.entries(d).map(([k, v]) => `<span style="color:#4a5568">${k}:</span> ${escHtml(String(v))}`).join('  ');
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Filters ──────────────────────────────────────────
+  function setFilter(type, val) {
+    filters[type] = val;
+    document.querySelectorAll(`.chip[data-type="${type}"]`).forEach(c => {
+      c.classList.toggle('active', c.dataset.val === val);
+    });
+    render();
+  }
+
+  // ── Actions ──────────────────────────────────────────
+  function clearLogs() {
+    if (!confirm('Clear all fault logs?')) return;
+    fetch('/api/logs', { method: 'DELETE' })
+      .then(() => { allLogs = []; render(); });
+  }
+
+  function exportCSV() {
+    const rows = [['ID','Timestamp','Level','Source','Event','Current','Detail']];
+    [...allLogs].reverse().forEach(l => {
+      rows.push([l.id, l.timestamp, l.level, l.source, l.event,
+                 l.current !== undefined ? l.current : 'N/A',
+                 JSON.stringify(l.detail).replace(/"/g,'""')]);
+    });
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = `fault_log_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.csv`;
+    a.click();
+  }
+</script>
+</body>
+</html>
