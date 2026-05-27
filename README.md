@@ -102,15 +102,14 @@ Co-Processing Unit  ◄─── (Patent-pending core — excluded from this rep
 ## ⚙️ System Operational Flow
 
 1. **System Initialization** — Hardware peripherals initialize; multiplexer set to Channel 1.
-2. **Zero-Cross Sync** — System synchronizes sampling with the AC waveform via ZCD.
-3. **Burst Sampling** — ADC samples collected within one AC cycle (~20ms) per channel.
-4. **Signal Processing** — RMS, peak, and Crest Factor computed. *(Core algorithm excluded for IP protection.)*
-5. **Baseline Decision:**
+2. **Signal Acquisition** — The analog front-end continuously captures high-resolution utility telemetry.
+3. **Co-Processing Analytics** — The dedicated analytics engine processes the signal stream in real-time. (Proprietary algorithmic execution excluded).
+4. **Baseline Decision:**
    - **Learning Mode:** Stores running statistics to build a per-channel reference baseline.
    - **Monitoring Mode:** Compares live values against the stored baseline.
-6. **Anomaly Detection** — Significant deviation from baseline flags a fault on the active channel.
-7. **Fault Alert & Isolation** — Status LED triggered, alert dispatched via ESP32, faulty channel identified.
-8. **Channel Rotation** — Multiplexer advances to the next channel; loop repeats continuously.
+5. **Anomaly Detection** — Significant deviation from baseline flags a fault on the active channel.
+6. **Fault Alert & Isolation** — Status LED triggered, alert dispatched via ESP32, faulty channel identified.
+7. **Channel Rotation** — Multiplexer advances to the next channel; loop repeats continuously.
 
 ---
 
