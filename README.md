@@ -34,7 +34,7 @@ The first-generation SyncSpace architecture focused on smart appliance automatio
 The second-generation architecture evolved SyncSpace into a utility-aware embedded electrical infrastructure platform capable of real-time fault attribution and predictive maintenance.
 
 #### Major Innovations Introduced in V2
-- Dual-microcontroller architecture (ESP32 + STM32)
+- Dual-microcontroller architecture
 - Dedicated co-processing subsystem
 - High-speed waveform acquisition
 - Real-time fault attribution
