@@ -44,8 +44,8 @@ The second-generation architecture evolved SyncSpace into a utility-aware embedd
 - Utility-level electrical observability
 
 #### V2 Architectural Evolution
-- ESP32 → IoT dashboard, MQTT & telemetry bridge
-- STM32 → Real-time signal analysis & fault analytics engine
+- IoT gateway unit → IoT dashboard, MQTT & telemetry bridge
+- Co-processing unit → Real-time signal analysis & fault analytics engine
 
 ---
 ## 📋 Abstract
